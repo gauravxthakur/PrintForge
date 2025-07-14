@@ -4,7 +4,25 @@ import { getModels } from "@/app/lib/models"
 
 export default async function Page({ searchParams }: ModelsPageProps) {
     const models = await getModels()
-    const query = (await searchParams)?.query?.toLowerCase() || ""
+
+    // 1. Await searchParams to get the actual object (this resolves the Promise)
+    const resolvedSearchParams = await searchParams;
+
+    // 2. Initialize 'query' as an empty string to ensure its type
+    let query: string = "";
+
+    // 3. Safely access and process the 'query' parameter
+    if (resolvedSearchParams?.query) {
+        if (Array.isArray(resolvedSearchParams.query)) {
+            // If 'query' is an array (e.g., ?query=a&query=b), take the first element
+            // Ensure the first element is a string before calling toLowerCase
+            query = resolvedSearchParams.query[0]?.toLowerCase() || "";
+        } else if (typeof resolvedSearchParams.query === 'string') {
+            // If 'query' is a single string, directly convert it to lowercase
+            query = resolvedSearchParams.query.toLowerCase();
+        }
+        // If it's neither an array nor a string (e.g., undefined), 'query' remains ""
+    }
 
     const filteredModels = query
         ? models.filter(model =>
